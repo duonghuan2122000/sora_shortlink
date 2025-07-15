@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import { Router } from "express";
 
-import Paths from '@src/common/constants/Paths';
-import UserRoutes from './UserRoutes';
-
+import Paths from "@src/common/constants/Paths";
+import UserRoutes from "./UserRoutes";
+import HttpStatusCodes from "@src/common/constants/HttpStatusCodes";
 
 /******************************************************************************
                                 Setup
@@ -10,6 +10,11 @@ import UserRoutes from './UserRoutes';
 
 const apiRouter = Router();
 
+// ** Health endpoint ** //
+
+apiRouter.get(Paths.Health, (_: any, res: any) =>
+  res.status(HttpStatusCodes.OK).end("healthy")
+);
 
 // ** Add UserRouter ** //
 
@@ -24,7 +29,6 @@ userRouter.delete(Paths.Users.Delete, UserRoutes.delete);
 
 // Add UserRouter
 apiRouter.use(Paths.Users.Base, userRouter);
-
 
 /******************************************************************************
                                 Export default
