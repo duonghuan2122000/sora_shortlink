@@ -4,6 +4,13 @@ export default {
    * Health endpoint
    */
   Health: "/health",
+  /**
+   * Send mail endpoint
+   */
+  Mails: {
+    Base: "/mails",
+    Send: "/send",
+  },
   Users: {
     Base: "/users",
     Get: "/all",

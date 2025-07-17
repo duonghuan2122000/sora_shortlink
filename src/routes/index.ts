@@ -3,6 +3,7 @@ import { Router } from "express";
 import Paths from "@src/common/constants/Paths";
 import UserRoutes from "./UserRoutes";
 import HttpStatusCodes from "@src/common/constants/HttpStatusCodes";
+import MailRoutes from "./MailRoutes";
 
 /******************************************************************************
                                 Setup
@@ -29,6 +30,14 @@ userRouter.delete(Paths.Users.Delete, UserRoutes.delete);
 
 // Add UserRouter
 apiRouter.use(Paths.Users.Base, userRouter);
+
+/**
+ * Mail Router
+ */
+const mailRouter = Router();
+mailRouter.post(Paths.Mails.Send, MailRoutes.sendMail);
+// add MailRouter
+apiRouter.use(Paths.Mails.Base, mailRouter);
 
 /******************************************************************************
                                 Export default
