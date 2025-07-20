@@ -1,13 +1,12 @@
-import { isNumber } from 'jet-validators';
-import { transform } from 'jet-validators/utils';
+import { isNumber, isString } from "jet-validators";
+import { transform } from "jet-validators/utils";
 
-import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
-import UserService from '@src/services/UserService';
-import User from '@src/models/User';
+import HttpStatusCodes from "@src/common/constants/HttpStatusCodes";
+import UserService from "@src/services/UserService";
+import User from "@src/models/User";
 
-import { IReq, IRes } from './common/types';
-import { parseReq } from './common/util';
-
+import { IReq, IRes } from "./common/types";
+import { parseReq } from "./common/util";
 
 /******************************************************************************
                                 Constants
@@ -17,8 +16,8 @@ const Validators = {
   add: parseReq({ user: User.test }),
   update: parseReq({ user: User.test }),
   delete: parseReq({ id: transform(Number, isNumber) }),
+  loginByMail: parseReq({ email: isString }),
 } as const;
-
 
 /******************************************************************************
                                 Functions
@@ -59,6 +58,14 @@ async function delete_(req: IReq, res: IRes) {
   res.status(HttpStatusCodes.OK).end();
 }
 
+/**
+ * Hàm xử lý đăng nhập người dùng bằng mail
+ */
+async function loginByMail(req: IReq, res: IRes) {
+  const { email } = Validators.loginByMail(req.body);
+  await UserService.loginByMail({ email });
+  res.status(HttpStatusCodes.OK).end();
+}
 
 /******************************************************************************
                                 Export default
@@ -69,4 +76,5 @@ export default {
   add,
   update,
   delete: delete_,
+  loginByMail,
 } as const;

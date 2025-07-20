@@ -27,6 +27,7 @@ userRouter.get(Paths.Users.Get, UserRoutes.getAll);
 userRouter.post(Paths.Users.Add, UserRoutes.add);
 userRouter.put(Paths.Users.Update, UserRoutes.update);
 userRouter.delete(Paths.Users.Delete, UserRoutes.delete);
+userRouter.post(Paths.Users.LoginByMail, UserRoutes.loginByMail);
 
 // Add UserRouter
 apiRouter.use(Paths.Users.Base, userRouter);

@@ -2,22 +2,17 @@
  * Service email
  * CreatedBy: dbhuan 17/07/2025
  */
+import ENV from "@src/common/constants/ENV";
 import nodemailer from "nodemailer";
-
-console.log(
-  process.env.EMAIL_SERVICE,
-  process.env.EMAIl_USER,
-  process.env.EMAIL_PASS
-);
 
 /**
  * Thiết lập config gửi mail
  */
 const transporter = nodemailer.createTransport({
-  service: process.env.EMAIL_SERVICE,
+  service: ENV.EmailService,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: ENV.EmailUser,
+    pass: ENV.EmailPass,
   },
 });
 
@@ -35,7 +30,7 @@ async function sendEmail({
   content: string;
 }) {
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+    from: ENV.EmailUser,
     to: email,
     subject,
     html: content,

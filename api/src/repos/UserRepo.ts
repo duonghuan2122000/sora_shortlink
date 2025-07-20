@@ -1,8 +1,13 @@
-import { IUser } from '@src/models/User';
-import { getRandomInt } from '@src/common/util/misc';
+import { IUser } from "@src/models/User";
+import { getRandomInt } from "@src/common/util/misc";
 
-import orm from './MockOrm';
+import orm from "./MockOrm";
+import { IUserEntity, IUserEntityRaw } from "./entities/UserEntity";
+import DbConnection from "./DbConnection";
 
+import mysql from "mysql2/promise";
+import BaseRepo from "./BaseRepo";
+import DateHelper from "@src/common/util/DateHelper";
 
 /******************************************************************************
                                 Functions
@@ -83,7 +88,6 @@ async function delete_(id: number): Promise<void> {
   }
 }
 
-
 // **** Unit-Tests Only **** //
 
 /**
@@ -96,23 +100,59 @@ async function deleteAllUsers(): Promise<void> {
 }
 
 /**
- * Insert multiple users. Can't do multiple at once cause using a plain file 
+ * Insert multiple users. Can't do multiple at once cause using a plain file
  * for nmow.
  */
-async function insertMult(
-  users: IUser[] | readonly IUser[],
-): Promise<IUser[]> {
+async function insertMult(users: IUser[] | readonly IUser[]): Promise<IUser[]> {
   const db = await orm.openDb(),
-    usersF = [ ...users ];
+    usersF = [...users];
   for (const user of usersF) {
     user.id = getRandomInt();
     user.created = new Date();
   }
-  db.users = [ ...db.users, ...users ];
+  db.users = [...db.users, ...users];
   await orm.saveDb(db);
   return usersF;
 }
 
+/**
+ * Hàm lấy thông tin user bằng email
+ */
+async function getOneByEmail(
+  email: string,
+  connection: mysql.PoolConnection
+): Promise<IUserEntity | null> {
+  const query = "SELECT * FROM soraUser u WHERE u.email = ? LIMIT 1";
+  const [rows] = await connection.query<IUserEntity[]>(query, [email]);
+  if (rows?.length == 1) {
+    return rows[0];
+  }
+  return null;
+}
+
+/**
+ * Hàm thêm user
+ */
+async function insert(
+  user: Partial<IUserEntityRaw>,
+  connection: mysql.PoolConnection
+): Promise<IUserEntity | null> {
+  user.id = BaseRepo.genUUID();
+  const query = `INSERT INTO soraUser (id, email, createdDate, updatedDate) values (?, ?, ?, ?);
+    SELECT * FROM soraUser u WHERE u.Id = ? LIMIT 1;`;
+  const [rows] = await connection.query<IUserEntity[]>(query, [
+    user.id,
+    user.email,
+    DateHelper.utcNow(),
+    null,
+    user.id,
+  ]);
+
+  if (rows?.length == 2) {
+    return rows[1]?.[0];
+  }
+  return null;
+}
 
 /******************************************************************************
                                 Export default
@@ -127,4 +167,6 @@ export default {
   delete: delete_,
   deleteAllUsers,
   insertMult,
+  getOneByEmail,
+  insert,
 } as const;

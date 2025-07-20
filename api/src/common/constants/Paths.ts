@@ -17,5 +17,6 @@ export default {
     Add: "/add",
     Update: "/update",
     Delete: "/delete/:id",
+    LoginByMail: "/login/by-mail",
   },
 } as const;
