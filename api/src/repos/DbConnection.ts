@@ -23,7 +23,17 @@ async function releaseDbConnection(
   return connection.release();
 }
 
+/**
+ * Hàm kiểm tra kết nối tới db
+ */
+async function pingDbConnection(
+  connection: mysql.PoolConnection
+): Promise<void> {
+  return connection.ping();
+}
+
 export default {
   createDbConnection,
   releaseDbConnection,
+  pingDbConnection,
 } as const;
