@@ -3,7 +3,7 @@ import { transform } from "jet-validators/utils";
 
 import HttpStatusCodes from "@src/common/constants/HttpStatusCodes";
 import UserService from "@src/services/UserService";
-import User from "@src/models/User";
+import UserModel from "@src/models/UserModel";
 
 import { IReq, IRes } from "./common/types";
 import { parseReq } from "./common/util";
@@ -13,10 +13,10 @@ import { parseReq } from "./common/util";
 ******************************************************************************/
 
 const Validators = {
-  add: parseReq({ user: User.test }),
-  update: parseReq({ user: User.test }),
+  add: parseReq({ user: UserModel.test }),
+  update: parseReq({ user: UserModel.test }),
   delete: parseReq({ id: transform(Number, isNumber) }),
-  loginByMail: parseReq({ email: isString }),
+  loginByMail: parseReq({ data: UserModel.validateLoginUserByMailInput }),
 } as const;
 
 /******************************************************************************
@@ -62,8 +62,8 @@ async function delete_(req: IReq, res: IRes) {
  * Hàm xử lý đăng nhập người dùng bằng mail
  */
 async function loginByMail(req: IReq, res: IRes) {
-  const { email } = Validators.loginByMail(req.body);
-  await UserService.loginByMail({ email });
+  const { data } = Validators.loginByMail(req.body);
+  await UserService.loginByMail({ email: data.attributes.email });
   res.status(HttpStatusCodes.OK).end();
 }
 

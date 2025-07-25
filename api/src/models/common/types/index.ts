@@ -3,6 +3,23 @@ export interface IModel {
   created: Date;
 }
 
+export interface IModelDataInput<TInput> {
+  /**
+   * Dto input payload
+   */
+  attributes: TInput;
+}
+
+/**
+ * Type model đầu vào chung
+ */
+export interface IModelInput<TInput> {
+  /**
+   * Dto input payload
+   */
+  data: IModelDataInput<TInput>;
+}
+
 /**
  * Type model kết quả đầu ra chung
  */

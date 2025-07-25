@@ -2,7 +2,7 @@ import insertUrlParams from 'inserturlparams';
 import { customDeepCompare } from 'jet-validators/utils';
 
 import UserRepo from '@src/repos/UserRepo';
-import User, { IUser } from '@src/models/User';
+import User, { IUser } from '@src/models/UserModel';
 import { USER_NOT_FOUND_ERR } from '@src/services/UserService';
 
 import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';

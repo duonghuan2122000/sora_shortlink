@@ -20,3 +20,7 @@ async function insert(
     null,
   ]);
 }
+
+export default {
+  insert,
+} as const;

@@ -6,7 +6,7 @@ import {
   ILoginUserByMailInput,
   ILoginUserByMailResult,
   IUser,
-} from "@src/models/User";
+} from "@src/models/UserModel";
 
 import mysql from "mysql2/promise";
 import DbConnection from "@src/repos/DbConnection";
@@ -16,6 +16,8 @@ import { randomBytes } from "crypto";
 import ENV from "@src/common/constants/ENV";
 import { NodeEnvs } from "@src/common/constants";
 import logger from "jet-logger";
+import OtpRepo from "@src/repos/OtpRepo";
+import { IOtpType } from "@src/repos/entities/OtpEntity";
 
 /******************************************************************************
                                 Constants
@@ -97,6 +99,12 @@ async function loginByMail(
     const curUser = user!;
 
     const otp = generateOTP();
+
+    await OtpRepo.insert({
+      otp,
+      otpType: IOtpType.LoginByMail,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000)
+    })
 
     if (ENV.NodeEnv !== NodeEnvs.Dev) {
       // Gửi mail OTP

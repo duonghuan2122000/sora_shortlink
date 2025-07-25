@@ -1,8 +1,8 @@
 import { isString } from "jet-validators";
-import { parseObject, TParseOnError } from "jet-validators/utils";
+import { parseObject, testObject, TParseOnError } from "jet-validators/utils";
 
 import { isRelationalKey, transIsDate } from "@src/common/util/validators";
-import { IModel } from "./common/types";
+import { IModel, IModelDataInput, IModelInput } from "./common/types";
 
 /******************************************************************************
                                  Constants
@@ -69,6 +69,20 @@ function test(arg: unknown, errCb?: TParseOnError): arg is IUser {
   return !!parseUser(arg, errCb);
 }
 
+/**
+ * Validate input ILoginUserByMailInput
+ */
+function validateLoginUserByMailInput(
+  arg: unknown,
+  errCb?: TParseOnError
+): arg is IModelDataInput<ILoginUserByMailInput> {
+  return !!parseObject<IModelDataInput<ILoginUserByMailInput>>({
+    attributes: testObject<ILoginUserByMailInput>({
+      email: isString,
+    }),
+  })(arg, errCb);
+}
+
 /******************************************************************************
                                 Export default
 ******************************************************************************/
@@ -76,4 +90,5 @@ function test(arg: unknown, errCb?: TParseOnError): arg is IUser {
 export default {
   new: __new__,
   test,
+  validateLoginUserByMailInput,
 } as const;

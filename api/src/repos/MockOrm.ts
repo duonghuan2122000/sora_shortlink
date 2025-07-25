@@ -2,7 +2,7 @@ import jsonfile from 'jsonfile';
 
 import ENV from '@src/common/constants/ENV';
 import { NodeEnvs } from '@src/common/constants';
-import { IUser } from '@src/models/User';
+import { IUser } from '@src/models/UserModel';
 
 
 /******************************************************************************
