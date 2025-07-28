@@ -1,0 +1,25 @@
+meta {
+  name: B1: Định danh mail
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{BaseUrl}}/users/login/by-mail
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "data": {
+      "attributes": {
+        "email": "dbhuan@test.com"
+      }
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+}

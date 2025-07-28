@@ -1,0 +1,26 @@
+meta {
+  name: B2: Xác thực OTP
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BaseUrl}}/users/login/by-mail/verify-otp
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "data": {
+      "attributes": {
+        "otp": "450578",
+        "identityVal": "a21fbfa1bfc94378bb6102400d40a036"
+      }
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+}

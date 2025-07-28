@@ -18,5 +18,10 @@ export default {
     Update: "/update",
     Delete: "/delete/:id",
     LoginByMail: "/login/by-mail",
+    VerifyOtpLoginByMail: "/login/by-mail/verify-otp",
+  },
+  ShortUrls: {
+    Base: "/s",
+    Access: "/:segmentVal",
   },
 } as const;

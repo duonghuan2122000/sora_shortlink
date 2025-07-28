@@ -7,6 +7,7 @@ import UserModel from "@src/models/UserModel";
 
 import { IReq, IRes } from "./common/types";
 import { parseReq } from "./common/util";
+import { verify } from "crypto";
 
 /******************************************************************************
                                 Constants
@@ -17,6 +18,9 @@ const Validators = {
   update: parseReq({ user: UserModel.test }),
   delete: parseReq({ id: transform(Number, isNumber) }),
   loginByMail: parseReq({ data: UserModel.validateLoginUserByMailInput }),
+  verifyOtpLoginByMail: parseReq({
+    data: UserModel.validateVerifyOtpLoginByMail,
+  }),
 } as const;
 
 /******************************************************************************
@@ -63,8 +67,14 @@ async function delete_(req: IReq, res: IRes) {
  */
 async function loginByMail(req: IReq, res: IRes) {
   const { data } = Validators.loginByMail(req.body);
-  await UserService.loginByMail({ email: data.attributes.email });
-  res.status(HttpStatusCodes.OK).end();
+  let result = await UserService.loginByMail({ email: data.attributes.email });
+  res.status(HttpStatusCodes.OK).json(result);
+}
+
+async function verifyOtpLoginByMail(req: IReq, res: IRes) {
+  const { data } = Validators.verifyOtpLoginByMail(req.body);
+  let result = await UserService.verifyOtpLoginByMail(data.attributes);
+  res.status(HttpStatusCodes.OK).json(result);
 }
 
 /******************************************************************************
@@ -77,4 +87,5 @@ export default {
   update,
   delete: delete_,
   loginByMail,
+  verifyOtpLoginByMail,
 } as const;

@@ -5,19 +5,23 @@ import UserRepo from "@src/repos/UserRepo";
 import {
   ILoginUserByMailInput,
   ILoginUserByMailResult,
+  ILoginUserResult,
   IUser,
+  IVerifyOtpLoginByMailInput,
 } from "@src/models/UserModel";
 
 import mysql from "mysql2/promise";
 import DbConnection from "@src/repos/DbConnection";
-import { IModelResult } from "@src/models/common/types";
+import { IModel, IModelResult } from "@src/models/common/types";
 import MailService from "./MailService";
 import { randomBytes } from "crypto";
 import ENV from "@src/common/constants/ENV";
 import { NodeEnvs } from "@src/common/constants";
 import logger from "jet-logger";
 import OtpRepo from "@src/repos/OtpRepo";
-import { IOtpType } from "@src/repos/entities/OtpEntity";
+import { IOtpStatus, IOtpType } from "@src/repos/entities/OtpEntity";
+import JwtHelper from "@src/common/util/JwtHelper";
+import DateHelper from "@src/common/util/DateHelper";
 
 /******************************************************************************
                                 Constants
@@ -77,7 +81,7 @@ function generateOTP() {
  * Hàm thực hiện đăng ký user
  */
 async function loginByMail(
-  registerUser: ILoginUserByMailInput
+  input: ILoginUserByMailInput
 ): Promise<IModelResult<ILoginUserByMailResult>> {
   var connection: mysql.PoolConnection | null = null;
 
@@ -85,12 +89,12 @@ async function loginByMail(
     connection = await DbConnection.createDbConnection();
 
     // khởi tạo kết nối
-    var user = await UserRepo.getOneByEmail(registerUser.email, connection);
+    var user = await UserRepo.getOneByEmail(input.email, connection);
     if (!user) {
       // thực hiện thêm user
       user = await UserRepo.insert(
         {
-          email: registerUser.email,
+          email: input.email,
         },
         connection
       );
@@ -100,11 +104,33 @@ async function loginByMail(
 
     const otp = generateOTP();
 
-    await OtpRepo.insert({
-      otp,
-      otpType: IOtpType.LoginByMail,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000)
-    })
+    let otpEntity = await OtpRepo.getCurrentByOtpType(
+      {
+        otpType: IOtpType.LoginByMail,
+        identityVal: curUser.id,
+      },
+      connection
+    );
+
+    if (
+      otpEntity &&
+      otpEntity.expiresAt > DateHelper.utcNow() &&
+      otpEntity.status == IOtpStatus.Init
+    ) {
+      otpEntity.otp = otp;
+      await OtpRepo.update(otpEntity, connection);
+    } else {
+      await OtpRepo.insert(
+        {
+          otp,
+          otpType: IOtpType.LoginByMail,
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+          identityVal: curUser.id,
+          maxTimesRetry: 3, // số lần retry tối đa là 3
+        },
+        connection
+      );
+    }
 
     if (ENV.NodeEnv !== NodeEnvs.Dev) {
       // Gửi mail OTP
@@ -119,7 +145,89 @@ async function loginByMail(
 
     return {
       status: true,
-      data: {},
+      data: {
+        identityVal: curUser.id,
+      },
+    };
+  } finally {
+    if (connection) {
+      await DbConnection.releaseDbConnection(connection);
+    }
+  }
+}
+
+/**
+ * Hàm thực hiện xác thực OTP login bằng mail
+ */
+async function verifyOtpLoginByMail(
+  input: IVerifyOtpLoginByMailInput
+): Promise<IModelResult<ILoginUserResult>> {
+  var connection: mysql.PoolConnection | null = null;
+
+  try {
+    connection = await DbConnection.createDbConnection();
+    const otpEntity = await OtpRepo.getByOtp(
+      {
+        otp: input.otp,
+        otpType: IOtpType.LoginByMail,
+        identityVal: input.identityVal,
+      },
+      connection
+    );
+
+    // xác thức OTP
+    if (!otpEntity || !(await OtpRepo.verifyOtp(otpEntity!))) {
+      return {
+        status: false,
+        error: {
+          code: "OTP_INVALID",
+          message: "Otp không hợp lệ",
+        },
+      };
+    }
+
+    // lấy thông tin user
+    let curUser = await UserRepo.getById(input.identityVal, connection);
+
+    if (!curUser) {
+      return {
+        status: false,
+        error: {
+          code: "USER_NOT_FOUND",
+          message: "User khôn tìm thấy",
+        },
+      };
+    }
+
+    let expiresAt = DateHelper.instance(new Date())
+      .utc()
+      .add(1, "day")
+      .toDate();
+
+    let expiresIn = Math.floor(
+      (expiresAt.getTime() - DateHelper.utcNow().getTime()) / 1000
+    );
+
+    let accessToken = await JwtHelper.generateToken(
+      {
+        sub: curUser.id,
+        email: curUser.email,
+      },
+      {
+        expiresAt,
+      }
+    );
+
+    otpEntity.timesRetry++;
+    otpEntity.status = IOtpStatus.Used;
+
+    await OtpRepo.update(otpEntity, connection);
+    return {
+      status: true,
+      data: {
+        accessToken,
+        expiresIn,
+      },
     };
   } finally {
     if (connection) {
@@ -138,4 +246,5 @@ export default {
   updateOne,
   delete: _delete,
   loginByMail,
+  verifyOtpLoginByMail,
 } as const;

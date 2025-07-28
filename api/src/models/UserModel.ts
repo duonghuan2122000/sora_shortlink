@@ -34,7 +34,31 @@ export interface ILoginUserByMailInput {
 /**
  * Type model kết quả đăng nhập người dùng bằng mail
  */
-export interface ILoginUserByMailResult {}
+export interface ILoginUserByMailResult {
+  identityVal: string;
+}
+
+export interface IVerifyOtpLoginByMailInput {
+  /**
+   * otp
+   */
+  otp: string;
+  /**
+   * identity Val
+   */
+  identityVal: string;
+}
+
+export interface ILoginUserResult {
+  /**
+   * access token
+   */
+  accessToken: string;
+  /**
+   * Thời gian hiệu lực
+   */
+  expiresIn: number;
+}
 
 /******************************************************************************
                                   Setup
@@ -83,6 +107,18 @@ function validateLoginUserByMailInput(
   })(arg, errCb);
 }
 
+function validateVerifyOtpLoginByMail(
+  arg: unknown,
+  errCb?: TParseOnError
+): arg is IModelDataInput<IVerifyOtpLoginByMailInput> {
+  return !!parseObject<IModelDataInput<IVerifyOtpLoginByMailInput>>({
+    attributes: testObject<IVerifyOtpLoginByMailInput>({
+      otp: isString,
+      identityVal: isString,
+    }),
+  })(arg, errCb);
+}
+
 /******************************************************************************
                                 Export default
 ******************************************************************************/
@@ -91,4 +127,5 @@ export default {
   new: __new__,
   test,
   validateLoginUserByMailInput,
+  validateVerifyOtpLoginByMail,
 } as const;

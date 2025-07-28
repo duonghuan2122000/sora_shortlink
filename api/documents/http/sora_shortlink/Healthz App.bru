@@ -1,0 +1,15 @@
+meta {
+  name: Healthz App
+  type: http
+  seq: NaN
+}
+
+get {
+  url: {{BaseUrl}}/healthz
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

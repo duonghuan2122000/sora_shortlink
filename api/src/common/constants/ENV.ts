@@ -14,6 +14,9 @@ const ENV = jetEnv({
   EmailUser: str,
   EmailPass: str,
   DatabaseUrl: str,
+  JwtSecret: str,
+  JwtIssuer: str,
+  JwtAudience: str,
 });
 
 /******************************************************************************

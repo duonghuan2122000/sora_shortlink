@@ -8,6 +8,7 @@ import DbConnection from "./DbConnection";
 import mysql from "mysql2/promise";
 import BaseRepo from "./BaseRepo";
 import DateHelper from "@src/common/util/DateHelper";
+import { I } from "vitest/dist/chunks/reporters.d.BFLkQcL6";
 
 /******************************************************************************
                                 Functions
@@ -131,6 +132,23 @@ async function getOneByEmail(
 }
 
 /**
+ * Hàm lấy thông tin user bằng id
+ * @param id Id user
+ * @param connection Connection to db
+ */
+async function getById(
+  id: string,
+  connection: mysql.PoolConnection
+): Promise<IUserEntity | null> {
+  const query = "SELECT * FROM soraUser u WHERE u.id = ? LIMIT 1";
+  const [rows] = await connection.query<IUserEntity[]>(query, [id]);
+  if (rows?.length == 1) {
+    return rows[0];
+  }
+  return null;
+}
+
+/**
  * Hàm thêm user
  */
 async function insert(
@@ -138,20 +156,16 @@ async function insert(
   connection: mysql.PoolConnection
 ): Promise<IUserEntity | null> {
   user.id = BaseRepo.genUUID();
-  const query = `INSERT INTO soraUser (id, email, createdDate, updatedDate) values (?, ?, ?, ?);
-    SELECT * FROM soraUser u WHERE u.Id = ? LIMIT 1;`;
+  const query = `INSERT INTO soraUser (id, email, createdDate, updatedDate) values (?, ?, ?, ?);`;
   const [rows] = await connection.query<IUserEntity[]>(query, [
     user.id,
     user.email,
-    DateHelper.utcNow(),
+    DateHelper.toSqlDateTime(new Date()),
     null,
     user.id,
   ]);
 
-  if (rows?.length == 2) {
-    return rows[1]?.[0];
-  }
-  return null;
+  return await getById(user.id, connection);
 }
 
 /******************************************************************************
@@ -168,5 +182,6 @@ export default {
   deleteAllUsers,
   insertMult,
   getOneByEmail,
+  getById,
   insert,
 } as const;
